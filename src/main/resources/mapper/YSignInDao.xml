@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YSignInDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YSignInEntity" id="ySignInMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="signTime" column="sign_time"/>
+        <result property="remark" column="remark"/>
+        <result property="signTotalTimes" column="sign_total_times"/>
+        <result property="signSerialTimes" column="sign_serial_times"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YSignInEntity">
+		select * from y_sign_in where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YSignInEntity">
+		select * from y_sign_in
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_sign_in 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YSignInEntity">
+		insert into y_sign_in
+		(
+			`id`, 
+			`user_id`, 
+			`sign_time`, 
+			`remark`, 
+			`sign_total_times`, 
+			`sign_serial_times`, 
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{id}, 
+			#{userId}, 
+			#{signTime}, 
+			#{remark}, 
+			#{signTotalTimes}, 
+			#{signSerialTimes}, 
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ater.modules.entity.YSignInEntity">
+		update y_sign_in 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="signTime != null">`sign_time` = #{signTime}, </if>
+			<if test="remark != null">`remark` = #{remark}, </if>
+			<if test="signTotalTimes != null">`sign_total_times` = #{signTotalTimes}, </if>
+			<if test="signSerialTimes != null">`sign_serial_times` = #{signSerialTimes}, </if>
+			<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from y_sign_in where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_sign_in where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<!-- 签到 -->
+	<select id="selectSign" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		SELECT DATEDIFF(sign_time,NOW()) AS diffDay,sign_total_times as signTotalTimes,sign_serial_times as signSerialTimes FROM y_sign_in WHERE  user_id =  #{userId}
+	</select>
+
+	<insert id="insertSign" parameterType="java.util.HashMap" >
+		INSERT INTO y_sign_in (id,user_id,sign_time,sign_total_times,sign_serial_times,del_status,gmt_create,gmt_modified) VALUES(#{id},#{userId},NOW(),'1','1',0,now(),now())
+	</insert>
+
+	<update id="updateSign" parameterType="java.util.HashMap" >
+		update y_sign_in
+		set sign_time = NOW(),gmt_modified= NOW(),sign_total_times = sign_total_times+1
+    	,sign_serial_times = sign_serial_times +1
+	 	where user_id =  #{userId}
+	</update>
+	<update id="updateSerialTimes" parameterType="com.ater.modules.entity.YSignInEntity">
+		update y_sign_in
+		set sign_serial_times = #{signSerialTimes}
+		where user_id=#{userId}
+	</update>
+   <select id="selectSerialTimes"  resultType="java.lang.Integer">
+ 	select sign_serial_times
+	from y_sign_in
+	where user_id=#{userId} and del_status='0'
+</select>
+
+</mapper>

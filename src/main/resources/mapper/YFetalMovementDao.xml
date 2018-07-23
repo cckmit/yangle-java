@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YFetalMovementDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YFetalMovementEntity" id="yFetalMovementMap">
+        <result property="moveId" column="move_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="meanHeartRate" column="mean_heart_rate"/>
+        <result property="state" column="state"/>
+        <result property="resultState" column="result_tate"/>
+        <result property="monitoringTime" column="monitoring_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+    <select id="queryObject" resultType="com.ater.modules.entity.YFetalMovementEntity">
+		select * from y_fetal_movement where move_id = #{value}
+	</select>
+
+    <select id="queryList" resultType="com.ater.modules.entity.YFetalMovementEntity">
+        select m.*,u.user_name as userName from y_fetal_movement m
+        left join y_user u on m.user_id=u.user_id
+        where m.del_status=0 and m.user_id=#{userId}
+        <if test="state != null and state != ''">
+            and state in (${state})
+        </if>
+
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by m.start_time desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    <!--已提交判断-->
+    <select id="queryTotal" resultType="int">
+        select count(*) from y_fetal_movement where del_status=0 and user_id=#{userId}
+        <if test="state != null and state != ''">
+            and state in (${state})
+        </if>
+
+    </select>
+
+    <select id="queryWebList" resultType="com.ater.modules.entity.YFetalMovementEntity">
+        select m.*,u.user_account as userAccount,u.user_name as userName,u3.user_name as doctor,u.birthday as birthday,u.pregnancy_date as pregnancyDate from y_fetal_movement m
+        left join (select u1.*,p.birthday,p.pregnancy_date FROM y_user u1
+        left join y_pregnancy p on u1.equipment_id=p.equipment_id
+        where u1.user_role='1')u on m.user_id=u.user_id
+        left join  (select * FROM y_user u2 where u2.user_role='2')u3 on m.read_user_id=u3.user_id
+        where m.del_status=0
+        <if test="state != null and state != ''">
+            and state=#{state}
+        </if>
+        <if test="state == null || state == ''">
+            and (m.state=3 or m.state=4)
+       </if>
+        <if test="startTimeStart != null and startTimeStart.trim() != '' and startTimeEnd != null and startTimeEnd.trim() != ''">
+            and m.start_time between #{startTimeStart} and #{startTimeEnd}
+        </if>
+        <if test="userName != null and userName != ''">
+            and u.user_name like concat('%',#{userName},'%')
+        </if>
+        <if test="doctor != null and doctor != ''">
+            and u3.user_name like concat('%',#{doctor},'%')
+        </if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by m.start_time desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryWebTotal" resultType="int">
+		select count(*) from (    select m.*,u.user_account as userAccount,u.user_name as userName,u3.user_name as doctor,u.birthday as birthday,u.pregnancy_date as pregnancyDate from y_fetal_movement m
+        left join (select u1.*,p.birthday,p.pregnancy_date FROM y_user u1
+        left join y_pregnancy p on u1.equipment_id=p.equipment_id
+        where u1.user_role='1')u on m.user_id=u.user_id
+        left join  (select * FROM y_user u2 where u2.user_role='2')u3 on m.read_user_id=u3.user_id
+        where m.del_status=0
+        <if test="state != null and state != ''">
+            and state=#{state}
+        </if>
+        <if test="state == null || state == ''">
+            and (m.state=3 or m.state=4)
+        </if>
+        <if test="startTimeStart != null and startTimeStart.trim() != '' and startTimeEnd != null and startTimeEnd.trim() != ''">
+            and m.start_time between #{startTimeStart} and #{startTimeEnd}
+        </if>
+        <if test="userName != null and userName != ''">
+            and u.user_name like concat('%',#{userName},'%')
+        </if>
+        <if test="doctor != null and doctor != ''">
+            and u3.user_name like concat('%',#{doctor},'%')
+        </if>)m
+	</select>
+
+    <!--未提交判读 DATEDIFF(NOW(),gmt_create)=0-->
+    <select id="queryTodayTotal" resultType="int">
+		select count(*) from y_fetal_movement
+		where  del_status=0 and (state=1 or state=2) and user_id=#{userId}
+	</select>
+    <!--已提交判断-->
+    <select id="querySubmitTotal" resultType="int">
+		select count(*) from y_fetal_movement
+		where  del_status=0 and (state=3 or state=4) and user_id=#{userId}
+	</select>
+
+    <select id="checkTodayByUserId" resultType="int">
+		select count(*) from y_fetal_movement where
+		user_id = #{userId}
+		and DATEDIFF(now(),gmt_create)=0
+	</select>
+
+    <select id="checkTodayPdByUserId" resultType="int">
+        select count(*) from y_fetal_movement where
+        user_id = #{userId}
+        and state > 2
+        and DATEDIFF(now(),gmt_create)=0
+    </select>
+    <insert id="save" parameterType="com.ater.modules.entity.YFetalMovementEntity" useGeneratedKeys="true"
+            keyProperty="moveId">
+		insert into y_fetal_movement
+		(
+			`move_id`, 
+         	`user_id`,
+			`mean_heart_rate`, 
+			`state`,
+			result_state,
+			`monitoring_time`,
+		 	`fetal_move`,
+	  		`start_time`,
+	  		read_content,
+	  		heart_record,
+	  		score_data,
+	  		acog_result,
+	  		nst_result,
+	  		fischer_result,
+	  	  	krebs_result,
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{moveId}, 
+		  	#{userId},
+			#{meanHeartRate}, 
+			#{state},
+			#{resultState},
+			#{monitoringTime},
+			#{fetalMove},
+			#{startTime},
+			#{readContent},
+		 	#{heartRecord},
+		 	#{scoreData},
+		  	#{acogResult},
+			#{nstResult},
+		 	#{fischerResult},
+		 	#{krebsResult},
+		  	#{abnormalResult}
+			0,
+			NOW(),
+			NOW()
+		)
+	</insert>
+
+    <update id="update" parameterType="com.ater.modules.entity.YFetalMovementEntity">
+        update y_fetal_movement
+        <set>
+            gmt_modified=NOW(),
+         <if test="userId != null">`user_id` = #{userId},</if>
+            <if test="readUserId != null">`read_user_id` = #{readUserId},</if>
+            <if test="meanHeartRate != null">`mean_heart_rate` = #{meanHeartRate},</if>
+            <if test="state != null">`state` = #{state},</if>
+            <if test="resultState != null">`result_state` = #{resultState},</if>
+            <if test="monitoringTime != null">`monitoring_time` = #{monitoringTime},</if>
+            <if test="scoreData != null">`score_data` = #{scoreData},</if>
+            <if test="acogResult != null">`acog_result` = #{acogResult},</if>
+            <if test="nstResult != null">`nst_result` = #{nstResult},</if>
+            <if test="fischerResult != null">`fischer_result` = #{fischerResult},</if>
+            <if test="krebsResult != null">`krebs_result` = #{krebsResult},</if>
+            <if test="startTime != null">`start_time` = #{startTime},</if>
+            <if test="fetalMove != null">`fetal_move` = #{fetalMove},</if>
+            <if test="heartRecord != null">`heart_record` = #{heartRecord},</if>
+           <if test="readContent != null">`read_content` = #{readContent}</if>
+        </set>
+        where move_id = #{moveId}
+    </update>
+
+    <delete id="delete">
+		delete from y_fetal_movement where move_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from y_fetal_movement where move_id in
+        <foreach item="moveId" collection="array" open="(" separator="," close=")">
+            #{moveId}
+        </foreach>
+    </delete>
+
+    <select id="queryPrint" resultType="com.ater.modules.entity.YFetalMovementEntity">
+      select m.*,u.user_account as userAccount,u.user_name as userName,u3.user_name as doctor,u.birthday as birthday,u.pregnancy_date as pregnancyDate from y_fetal_movement m
+        left join (select u1.*,p.birthday,p.pregnancy_date FROM y_user u1
+        left join y_pregnancy p on u1.equipment_id=p.equipment_id
+        where u1.user_role='1')u on m.user_id=u.user_id
+      left join  (select * FROM y_user u2 where u2.user_role='2')u3 on m.read_user_id=u3.user_id
+        where m.move_id=#{moveId}
+    </select>
+
+
+    <select id="queryYTbTaskList" resultType="com.ater.modules.entity.YTbTaskEntity">
+        select tb.*  ,u.user_name as userName from tb_task tb
+        left join y_user u on tb.related_info=u.user_id
+        where  tb.users is not null or tb.users!=""
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by tb.create_date desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryTbTaskTotal" resultType="int">
+        select count(*) from (select tb.*  ,u.user_name as userName from tb_task tb
+        left join y_user u on tb.related_info=u.user_id
+        where  tb.users is not null or tb.users!="")m
+     </select>
+</mapper>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YPointDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YPointEntity" id="yPointMap">
+        <result property="pointId" column="point_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="point" column="point"/>
+        <result property="pointType" column="point_type"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YPointEntity">
+		select * from y_point where point_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YPointEntity">
+		select * from y_point
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by point_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_point 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YPointEntity">
+		insert into y_point
+		(
+			`point_id`, 
+			`user_id`, 
+			`point`, 
+			`point_type`, 
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{pointId}, 
+			#{userId}, 
+			#{point}, 
+			#{pointType}, 
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ater.modules.entity.YPointEntity">
+		update y_point 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="point != null">`point` = #{point}, </if>
+			<if test="pointType != null">`point_type` = #{pointType}, </if>
+			<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where point_id = #{pointId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_point where point_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_point where point_id in 
+		<foreach item="pointId" collection="array" open="(" separator="," close=")">
+			#{pointId}
+		</foreach>
+	</delete>
+	<insert id="insertPoint" parameterType="java.util.HashMap" >
+      insert into y_point
+		(
+
+			`point_id`,
+			`user_id`,
+			`point`,
+			`point_type`,
+			`del_status`,
+			`gmt_create`,
+			`gmt_modified`
+		)
+		values
+		(
+			#{pointId},
+			#{userId},
+			#{point},
+			#{pointType},
+			0,
+			now(),
+			now()
+		)
+	</insert>
+    <!-- 查询是否存在该积分 -->
+    <select id="selectPoint" resultType="com.ater.modules.entity.YPointEntity" >
+        SELECT * FROM y_point WHERE  user_id =  #{userId} and point_type=#{pointType}
+    </select>
+    <update id="updatePoint" parameterType="java.util.HashMap" >
+		update y_point
+		set gmt_modified= NOW(),point = ${point}
+		where user_id =  #{userId}
+	</update>
+</mapper>

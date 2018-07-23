@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ater.modules.dao.UserMapper">
+
+	<!--验证手机号是否已经存在   -->
+	<select id="checkUserAccountExist" resultType="Integer">
+		SELECT count(*) FROM y_user WHERE  user_account=#{userAccount} AND  del_status=0 and  user_role=#{userRole}
+	</select>
+
+	<!-- user Login -->
+	<select id="userLogin" resultType="com.ater.modules.entity.User">
+		select * from y_user u where
+		u.user_account=#{userAccount} and u.user_password=#{userPassword1}
+		and u.del_status=0 and u.user_role=#{userRole}
+	</select>
+    <select id="userWebLogin" resultType="com.ater.modules.entity.User">
+        select * from y_user u where
+        u.user_name=#{userName} and u.user_password=#{userPassword1}
+        and u.del_status=0 and u.user_role=#{userRole}
+    </select>
+	<select id="queryuser" resultType="com.ater.modules.entity.User">
+	  	select u.*, p.last_menstruation as lastMenstruation,p.birthday as birthday from y_user u
+		left join y_pregnancy p  on u.equipment_id=p.equipment_id
+		where 	u.user_id=#{userId}
+		and u.del_status=0 and u.user_role=#{userRole}  and p.del_status=0
+	</select>
+	<!--手机号验证码登录-->
+	<select id="queryuserByUserAccount" resultType="com.ater.modules.entity.User">
+		select u.*, p.last_menstruation as lastMenstruation,p.birthday as birthday from y_user u
+		left join y_pregnancy p  on u.equipment_id=p.equipment_id
+		where u.user_account=#{userAccount}
+		and u.del_status=0 and u.user_role=#{userRole}  and p.del_status=0
+	</select>
+
+	<!-- 重置密码  -->
+	<update id="resetUserPassword" >
+		UPDATE y_user u SET u.user_password=#{userPassword1} WHERE u.user_account = #{userAccount} and u.del_status=0 and u.user_role=#{userRole}
+	</update>
+
+	<!-- 查询是否有该验证码 -->
+	<select id="selectSmsCode" resultType="com.ater.modules.entity.SmsResultBean" >
+		select *
+		from y_sms_manage
+		where user_account = #{userAccount} and sms_type = #{smsType} and del_status='0'
+		order by update_time desc
+		limit 1
+	</select>
+	<insert id="insertsms" parameterType="com.ater.modules.entity.SmsResultBean">
+		insert into y_sms_manage
+		(
+		`user_account`,
+		`sms_type`,
+		error_code,
+		sms_code,
+		update_time,
+		del_status
+		)
+		values
+		(
+		#{userAccount},
+		#{smsType},
+		#{errorCode},
+		#{smsCode},
+		now(),
+		0
+		)
+	</insert>
+	<insert id="save" parameterType="com.ater.modules.entity.User" useGeneratedKeys="true" keyProperty="userId">
+		insert into y_user
+		(
+			`user_id`,
+			`equipment_id`,
+			`user_account`,
+			`user_name`,
+			`user_password`,
+			`user_icon`,
+			`user_role`,
+			`user_email`,
+			`user_sex`,
+			`user_address`,
+		    `app_id`,
+			`qq_open_id`,
+			`weixin_open_id`,
+			`weibo_open_id`,
+			`del_status`,
+			`gmt_create`,
+			`gmt_modified`
+		)
+		values
+		(
+			#{userId},
+			#{equipmentId},
+			#{userAccount},
+			#{userName},
+			#{userPassword},
+			#{userIcon},
+			#{userRole},
+			#{userEmail},
+			#{userSex},
+			#{userAddress},
+		  	#{appId},
+			#{qqOpenId},
+			#{weixinOpenId},
+			#{weiboOpenId},
+			0,
+			now(),
+			now()
+		)
+	</insert>
+
+    <update id="updateById" parameterType="com.ater.modules.entity.User">
+        update y_user
+        <set>
+            gmt_modified=now(),
+            <if test="equipmentId != null">`equipment_id` = #{equipmentId}, </if>
+            <if test="userAccount != null">`user_account` = #{userAccount}, </if>
+            <if test="userName != null">`user_name` = #{userName}, </if>
+            <if test="userPassword != null">`user_password` = #{userPassword}, </if>
+            <if test="userIcon != null">`user_icon` = #{userIcon}, </if>
+            <if test="userRole != null">`user_role` = #{userRole}, </if>
+            <if test="userEmail != null">`user_email` = #{userEmail}, </if>
+            <if test="userSex != null">`user_sex` = #{userSex}, </if>
+            <if test="userAddress != null">`user_address` = #{userAddress}, </if>
+           <if test="appId != null">`app_id` = #{appId}, </if>
+            <if test="qqOpenId != null">`qq_open_id` = #{qqOpenId}, </if>
+            <if test="weixinOpenId != null">`weixin_open_id` = #{weixinOpenId}, </if>
+            <if test="weiboOpenId != null">`weibo_open_id` = #{weiboOpenId}, </if>
+        </set>
+        where user_id = #{userId}
+    </update>
+
+	<!--医生list-->
+	<select id="selectDoctorList" resultType="com.ater.modules.entity.User" >
+		select* from y_user
+       where user_role=#{userRole} and (del_status=0 or del_status is null)
+	</select>
+</mapper>

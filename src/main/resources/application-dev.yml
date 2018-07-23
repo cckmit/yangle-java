@@ -1,0 +1,49 @@
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        druid:
+#            url: jdbc:mysql://127.0.0.1:3306/ledger-dev?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+          #  url: jdbc:mysql://58.209.207.76:3307/yangle?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+          # url: jdbc:mysql://yl.ibao365.net:3306/yangle?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+            url: jdbc:mysql://rm-m5e0efvi24910a55v1o.mysql.rds.aliyuncs.com:3306/yangle?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+#            username: root
+#            password: 1234
+            username: yl
+            password: P@ssword1234567890
+            initial-size: 10
+            max-active: 100
+            min-idle: 10
+            max-wait: 60000
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 1 FROM DUAL
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            stat-view-servlet:
+                enabled: true
+                url-pattern: /druid/*
+            filter:
+                stat:
+                    log-slow-sql: true
+                    slow-sql-millis: 1000
+                    merge-sql: true
+                wall:
+                    config:
+                        multi-statement-allow: true
+
+    rabbitmq:
+      host: localhost
+      port: 5672
+      #开启消息发送确认
+      publisher-confirms: true
+      publisher-returns: true
+     #返回无法插入队列的消息
+      template:
+        mandatory: true
+
+
+

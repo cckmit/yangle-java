@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YKnowledgeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YKnowledgeEntity" id="yKnowledgeMap">
+        <result property="konwId" column="konw_id"/>
+        <result property="knowPicture" column="know_picture"/>
+        <result property="knowName" column="know_name"/>
+        <result property="knowContent" column="know_content"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+		<result property="knowBigPicture" column="know_big_picture"/>
+		<result property="author" column="author"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YKnowledgeEntity">
+		select * from y_knowledge where konw_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YKnowledgeEntity">
+		select * from y_knowledge
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by gmt_modified desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_knowledge 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YKnowledgeEntity">
+		insert into y_knowledge
+		(
+			`konw_id`, 
+			`know_picture`, 
+			`know_name`, 
+			`know_content`,
+			know_tip,
+			author,
+			know_big_picture
+              know_brief,
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{konwId}, 
+			#{knowPicture}, 
+			#{knowName}, 
+			#{knowContent},
+		 	#{knowTip},
+	    	#{author},
+		 	#{knowBigPicture},
+	       #{knowBrief},
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ater.modules.entity.YKnowledgeEntity">
+		update y_knowledge 
+		<set>
+			<if test="knowPicture != null">`know_picture` = #{knowPicture}, </if>
+			<if test="knowName != null">`know_name` = #{knowName}, </if>
+			<if test="knowContent != null">`know_content` = #{knowContent}, </if>
+			<if test="knowTip != null">`know_tip` = #{knowTip}, </if>
+			<if test="author != null">`author` = #{author}, </if>
+			<if test="knowBigPicture != null">`know_bigPicture` = #{know_big_picture}, </if>
+			<if test="knowBrief != null">`know_brief` = #{knowBrief}, </if>
+        	<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where konw_id = #{konwId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_knowledge where konw_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_knowledge where konw_id in 
+		<foreach item="konwId" collection="array" open="(" separator="," close=")">
+			#{konwId}
+		</foreach>
+	</delete>
+     <!--首页显示今日知识-->
+	<select id="selectThreeKnowledge" resultType="com.ater.modules.entity.YKnowledgeEntity">
+        select * from y_knowledge
+         where del_status=0
+        order by gmt_modified DESC
+        limit 3
+	</select>
+</mapper>

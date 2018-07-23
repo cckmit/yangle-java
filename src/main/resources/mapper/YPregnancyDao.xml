@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YPregnancyDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YPregnancyEntity" id="yPregnancyMap">
+        <result property="perId" column="per_id"/>
+        <result property="lastMenstruation" column="last_menstruation"/>
+        <result property="pregnancyDate" column="pregnancy_date"/>
+        <result property="pregnancyWeek" column="pregnancy_week"/>
+        <result property="babyBirth" column="baby_birth"/>
+		<result property="birthday" column="birthday"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YPregnancyEntity">
+		select * from y_pregnancy where per_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YPregnancyEntity">
+		select * from y_pregnancy
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by per_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_pregnancy 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YPregnancyEntity">
+		insert into y_pregnancy
+		(
+			`per_id`, 
+			`last_menstruation`, 
+			`pregnancy_date`, 
+			`pregnancy_week`, 
+			`baby_birth`,
+			equipment_id,
+			birthday,
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{perId}, 
+			#{lastMenstruation}, 
+			#{pregnancyDate}, 
+			#{pregnancyWeek}, 
+			#{babyBirth},
+			#{equipmentId},
+			#{birthday},
+			0,
+			NOW(),
+			NOW()
+		)
+	</insert>
+	 
+	<update id="updatePregnancy" parameterType="com.ater.modules.entity.YPregnancyEntity">
+		update y_pregnancy 
+		<set>
+			gmt_modified=now(), del_status=0,
+			<if test="lastMenstruation != null">`last_menstruation` = #{lastMenstruation}, </if>
+			<if test="pregnancyDate != null">`pregnancy_date` = #{pregnancyDate}, </if>
+			<if test="pregnancyWeek != null">`pregnancy_week` = #{pregnancyWeek}, </if>
+			<if test="babyBirth != null">`baby_birth` = #{babyBirth}, </if>
+			<if test="equipmentId != null">`equipment_id` = #{equipmentId},</if>
+			<if test="birthday != null">`birthday` = #{birthday}</if>
+	 	</set>
+		where per_id = #{perId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_pregnancy where per_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_pregnancy where per_id in 
+		<foreach item="perId" collection="array" open="(" separator="," close=")">
+			#{perId}
+		</foreach>
+	</delete>
+	<!--根据设备Id判断是否已存在-->
+	<select id="queryOneByEquipmentId" resultType="com.ater.modules.entity.YPregnancyEntity">
+		select * from y_pregnancy where equipment_id = #{equipmentId} and del_status=0
+	</select>
+
+
+
+
+</mapper>

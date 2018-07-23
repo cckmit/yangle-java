@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YFetalHeartDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YFetalHeartEntity" id="yFetalHeartMap">
+        <result property="heartId" column="heart_id"/>
+
+        <result property="heartRate" column="heart_rate"/>
+        <result property="uterineContraction" column="uterine_contraction"/>
+        <result property="heartTime" column="heart_time"/>
+		<result property="moveId" column="move_id"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YFetalHeartEntity">
+		select * from y_fetal_heart where heart_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YFetalHeartEntity">
+		select * from y_fetal_heart
+		where  del_status=0  and move_id=#{moveId}
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by heart_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_fetal_heart
+	   where  del_status=0  and move_id=#{moveId}
+	</select>
+
+
+
+	<insert id="save" parameterType="com.ater.modules.entity.YFetalHeartEntity">
+		insert into y_fetal_heart
+		(
+			`heart_id`, 
+		  	`heart_rate`,
+			`uterine_contraction`,
+	     	`heart_time`,
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{heartId}, 
+	    	#{heartRate},
+			#{uterineContraction},
+		  	#{heartTime},
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into y_fetal_heart
+		(
+		`heart_id`,
+		`move_id`,
+	 	`heart_rate`,
+		`uterine_contraction`,
+	  	`heart_time`,
+		`del_status`,
+		`gmt_create`,
+		`gmt_modified`
+		)
+		values
+		<foreach collection="list" item="item" index="index"
+				 separator=",">
+			(
+			#{item.heartId},
+			#{item.moveId},
+		    #{item.heartRate},
+			#{item.uterineContraction},
+		  	#{item.heartTime},
+			0,
+			now(),
+	    	now()
+			)
+		</foreach>
+	</insert>
+
+	<update id="update" parameterType="com.ater.modules.entity.YFetalHeartEntity">
+		update y_fetal_heart 
+		<set>
+
+			<if test="heartRate != null">`heart_rate` = #{heartRate}, </if>
+			<if test="uterineContraction != null">`uterine_contraction` = #{uterineContraction}, </if>
+			<if test="heartTime != null">`heart_time` = #{heartTime}, </if>
+			<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where heart_id = #{heartId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_fetal_heart where heart_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_fetal_heart where heart_id in 
+		<foreach item="heartId" collection="array" open="(" separator="," close=")">
+			#{heartId}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YBabyStatusDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YBabyStatusEntity" id="yBabyStatusMap">
+        <result property="badyId" column="bady_id"/>
+        <result property="babyLength" column="baby_length"/>
+        <result property="fetalWeight" column="fetal_weight"/>
+        <result property="doubleTopDiameter" column="double_top_diameter"/>
+        <result property="developFetal" column="develop_fetal"/>
+        <result property="motherChange" column="mother_change"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YBabyStatusEntity">
+		select * from y_baby_status where bady_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YBabyStatusEntity">
+		select * from y_baby_status
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by bady_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_baby_status 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YBabyStatusEntity">
+		insert into y_baby_status
+		(
+			`bady_id`,
+			bady_picture
+			`baby_length`, 
+			`fetal_weight`, 
+			`double_top_diameter`, 
+			`develop_fetal`, 
+			`mother_change`, 
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{badyId},
+			#{badyPicture},
+			#{babyLength}, 
+			#{fetalWeight}, 
+			#{doubleTopDiameter}, 
+			#{developFetal}, 
+			#{motherChange}, 
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ater.modules.entity.YBabyStatusEntity">
+		update y_baby_status 
+		<set>
+			<if test="badyPicture != null">`bady_picture` = #{badyPicture}, </if>
+			<if test="babyLength != null">`baby_length` = #{babyLength}, </if>
+			<if test="fetalWeight != null">`fetal_weight` = #{fetalWeight}, </if>
+			<if test="doubleTopDiameter != null">`double_top_diameter` = #{doubleTopDiameter}, </if>
+			<if test="developFetal != null">`develop_fetal` = #{developFetal}, </if>
+			<if test="motherChange != null">`mother_change` = #{motherChange}, </if>
+			<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where bady_id = #{badyId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_baby_status where bady_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_baby_status where bady_id in 
+		<foreach item="badyId" collection="array" open="(" separator="," close=")">
+			#{badyId}
+		</foreach>
+	</delete>
+	<!--首页显示宝宝情况-->
+	<select id="queryOne" resultType="com.ater.modules.entity.YBabyStatusEntity">
+		select * from y_baby_status where del_status = '0' and  pregn_week=#{week} limit 1
+	</select>
+</mapper>

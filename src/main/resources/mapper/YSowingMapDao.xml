@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YSowingMapDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YSowingMapEntity" id="ySowingMapMap">
+        <result property="sowId" column="sow_id"/>
+        <result property="sowPicture" column="sow_picture"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YSowingMapEntity">
+		select * from y_sowing_map where sow_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YSowingMapEntity">
+		select * from y_sowing_map
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by sow_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_sowing_map 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YSowingMapEntity">
+		insert into y_sowing_map
+		(
+			`sow_id`, 
+			`sow_picture`, 
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{sowId}, 
+			#{sowPicture}, 
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ater.modules.entity.YSowingMapEntity">
+		update y_sowing_map 
+		<set>
+			<if test="sowPicture != null">`sow_picture` = #{sowPicture}, </if>
+			<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where sow_id = #{sowId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_sowing_map where sow_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_sowing_map where sow_id in 
+		<foreach item="sowId" collection="array" open="(" separator="," close=")">
+			#{sowId}
+		</foreach>
+	</delete>
+	<!---首页显示的-->
+	<select id="queryAllList" resultType="com.ater.modules.entity.YSowingMapEntity">
+    	select * from y_sowing_map where  del_status=0
+    	order by gmt_modified desc
+	</select>
+</mapper>

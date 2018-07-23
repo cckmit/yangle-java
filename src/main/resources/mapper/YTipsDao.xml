@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YTipsDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.YTipsEntity" id="yTipsMap">
+        <result property="tipId" column="tip_id"/>
+        <result property="tipContent" column="tip_content"/>
+        <result property="isDisplay" column="is_display"/>
+        <result property="delStatus" column="del_status"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YTipsEntity">
+		select * from y_tips where tip_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YTipsEntity">
+		select * from y_tips
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by tip_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from y_tips 
+	</select>
+	 
+	<insert id="save" parameterType="com.ater.modules.entity.YTipsEntity">
+		insert into y_tips
+		(
+			`tip_id`, 
+			`tip_content`, 
+			`is_display`, 
+			`del_status`, 
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{tipId}, 
+			#{tipContent}, 
+			#{isDisplay}, 
+			#{delStatus}, 
+			#{gmtCreate}, 
+			#{gmtModified}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ater.modules.entity.YTipsEntity">
+		update y_tips 
+		<set>
+			<if test="tipContent != null">`tip_content` = #{tipContent}, </if>
+			<if test="isDisplay != null">`is_display` = #{isDisplay}, </if>
+			<if test="delStatus != null">`del_status` = #{delStatus}, </if>
+			<if test="gmtCreate != null">`gmt_create` = #{gmtCreate}, </if>
+			<if test="gmtModified != null">`gmt_modified` = #{gmtModified}</if>
+		</set>
+		where tip_id = #{tipId}
+	</update>
+	
+	<delete id="delete">
+		delete from y_tips where tip_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from y_tips where tip_id in 
+		<foreach item="tipId" collection="array" open="(" separator="," close=")">
+			#{tipId}
+		</foreach>
+	</delete>
+     <!--首页显示的提示-->
+	<select id="queryOne" resultType="com.ater.modules.entity.YTipsEntity">
+		select * from y_tips where del_status = 0 and is_display=1 limit 1
+
+	</select>
+
+</mapper>

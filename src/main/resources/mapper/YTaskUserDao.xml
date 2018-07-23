@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.YTaskUserDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="com.ater.modules.entity.YTaskUserEntity" id="yTaskUserMap">
+		<result property="taskUserId" column="task_user_id"/>
+		<result property="taskId" column="task_id"/>
+		<result property="userId" column="user_id"/>
+		<result property="taskStatus" column="task_status"/>
+		<result property="delStatus" column="del_status"/>
+		<result property="gmtCreate" column="gmt_create"/>
+		<result property="gmtModified" column="gmt_modified"/>
+		<result property="taskPriority" column="task_priority"/>
+		<result property="taskPicture" column="task_picture"/>
+	</resultMap>
+
+	<select id="queryObject" resultType="com.ater.modules.entity.YTaskUserEntity">
+		select * from y_task_user where task_user_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.ater.modules.entity.YTaskUserEntity">
+		select * from y_task_user
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by task_user_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<!--app-->
+
+	<select id="queryListByUserId" resultType="com.ater.modules.entity.YTaskUserVo">
+		select t.*, tu.task_user_id as taskUserId, ifnull(tu.task_status,0) as taskStatus
+		from y_task_user tu
+		left join y_task t on tu.task_id=t.task_id and tu.user_id=#{userId}
+
+		<where>
+			t.del_status=0  and DATEDIFF(now(),tu.gmt_create)=0
+			<if test="taskStatus!=null">
+				and tu.task_status=#{taskStatus}
+			</if>
+		</where>
+		order by tu.task_priority
+	</select>
+
+	<select id="queryTodayPriority2" resultType="com.ater.modules.entity.YTaskUserEntity">
+          select * from y_task_user
+          where user_id = #{userId}
+          and task_priority = 2
+          and DATEDIFF(now(),gmt_create)=0
+	</select>
+
+	<select id="queryTodayPriority3" resultType="com.ater.modules.entity.YTaskUserEntity">
+          select * from y_task_user
+          where user_id = #{userId}
+          and task_priority = 3
+          and DATEDIFF(now(),gmt_create)=0
+	</select>
+
+	<select id="queryOne" resultType="com.ater.modules.entity.YTaskUserVo">
+		select t.task_name as taskName, t.task_content as taskContent,ifnull(tu.task_status,0) as taskStatus ,t.task_id as taskId ,tu.task_user_id as taskUserId
+		from y_task t
+		left join y_task_user tu on tu.task_id=t.task_id
+		where t.del_status=0 and tu.task_user_id=#{taskUserId}
+	</select>
+	<!--根据用户Id查询出待解锁的任务-->
+	<select id="selectOneByUserId" resultType="com.ater.modules.entity.YTaskUserEntity">
+    select  * from y_task_user
+    where  del_status=0  and DATEDIFF(now(),gmt_create)=0 and task_status=0 and user_id=#{userId}
+     order by task_priority limit 1
+	</select>
+	<select id="queryTotal" resultType="int">
+		select count(*) from y_task_user 
+	</select>
+
+	<insert id="save" parameterType="com.ater.modules.entity.YTaskUserEntity">
+		insert into y_task_user
+		(
+			`task_user_id`, 
+			`task_id`, 
+			`user_id`, 
+			`task_status`,
+			`task_priority`,
+			`del_status`,
+			`gmt_create`, 
+			`gmt_modified`
+		)
+		values
+		(
+			#{taskUserId}, 
+			#{taskId}, 
+			#{userId}, 
+			#{taskStatus},
+			#{taskPriority},
+			0,
+			now(),
+	        now()
+		)
+	</insert>
+
+	<update id="update" parameterType="com.ater.modules.entity.YTaskUserEntity">
+		update  y_task_user
+		<set>
+			gmt_modified=now(),
+			<if test="taskId != null">`task_id` = #{taskId}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="taskStatus != null">`task_status` = #{taskStatus} </if>
+		</set>
+		where task_user_id = #{taskUserId}
+	</update>
+
+	<update id="updateStatus" parameterType="com.ater.modules.entity.YTaskUserVo">
+		update  y_task_user
+		<set>
+			gmt_modified=now(),
+			<if test="taskId != null">`task_id` = #{taskId}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="taskStatus != null">`task_status` = #{taskStatus} </if>
+		</set>
+		where task_user_id = #{taskUserId}
+	</update>
+
+	<delete id="delete">
+		delete from y_task_user where task_user_id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from y_task_user where task_user_id in
+		<foreach item="taskUserId" collection="array" open="(" separator="," close=")">
+			#{taskUserId}
+		</foreach>
+	</delete>
+
+</mapper>

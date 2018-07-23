@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ater.modules.dao.TaskDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.ater.modules.entity.TaskEntity" id="taskMap">
+        <result property="id" column="id"/>
+        <result property="createDate" column="create_date"/>
+        <result property="platform" column="platform"/>
+        <result property="related_info" column="relatedInfo"/>
+        <result property="result" column="result"/>
+        <result property="mqid" column="mqid"/>
+        <result property="jobid" column="jobid"/>
+        <result property="users" column="users"/>
+        <result property="params" column="params"/>
+    </resultMap>
+
+    <select id="queryObject" resultType="com.ater.modules.entity.TaskEntity">
+		SELECT a.*
+		from tb_task a
+		where a.id = #{value}
+	</select>
+    <select id="queryOneByMId" resultType="com.ater.modules.entity.TaskEntity">
+        SELECT a.*
+        from tb_task a
+        where a.mqid = #{mqid}
+    </select>
+    <select id="queryOneByMIdAndResult" resultType="com.ater.modules.entity.TaskEntity">
+        SELECT a.*
+        from tb_task a
+        where a.mqid = #{mqid} and a.result=#{result}
+    </select>
+    <select id="queryList" resultType="com.ater.modules.entity.TaskEntity">
+        SELECT a.*
+        from tb_task a
+        order by a.id desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryTotal" resultType="int">
+        SELECT count(1) from tb_task a
+    </select>
+
+    <insert id="save" parameterType="com.ater.modules.entity.TaskEntity" useGeneratedKeys="false" keyProperty="id">
+        insert into tb_task
+        (
+        `id`,
+        `create_date`,
+        `platform`,
+        `related_info`,
+        `result`,
+        `mqid`,
+        `jobid`,
+        `users`,
+        `params`
+        )
+        values
+        (
+        #{id},
+        #{createDate},
+        #{platform},
+        #{relatedInfo},
+        #{result},
+        #{mqid},
+        #{jobid},
+        #{users},
+        #{params}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.ater.modules.entity.TaskEntity">
+        update tb_task
+        <set>
+            <if test="createDate != null">`create_date` = #{createDate},</if>
+            <if test="platform != null">`platform` = #{platform},</if>
+            <if test="relatedInfo != null">`related_info` = #{relatedInfo},</if>
+            <if test="result != null">`result` = #{result},</if>
+            <if test="mqid != null">`mqid` = #{mqid},</if>
+            <if test="jobid != null">`jobid` = #{jobid},</if>
+            <if test="users != null">`users` = #{users},</if>
+            <if test="params != null">`params` = #{params}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+		delete from tb_task where ID = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from tb_task where ID in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
